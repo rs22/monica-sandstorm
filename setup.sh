@@ -23,6 +23,7 @@ sed --in-place='' \
 # patch /usr/local/etc/php-fpm.conf to not have a pidfile
 sed --in-place='' \
         --expression='s/^pid =/;pid =/' \
+        --expression='s/^;error_log =.*/error_log =\/var\/log\/php-fpm.log/' \
         /usr/local/etc/php-fpm.conf
 # patch /usr/local/etc/php-fpm.conf to place the sock file in /var
 sed --in-place='' \
@@ -41,8 +42,8 @@ sed --in-place='' \
         --expression='/\[mysqld]/ a\ secure-file-priv = ""\' \
         /etc/mysql/my.cnf
 
-# Remove docker-specific config file that forces the listen option to 9000
-rm /usr/local/etc/php-fpm.d/zz-docker.conf
+# Remove docker-specific config file that redirects stdio and forces the listen option to 9000
+rm /usr/local/etc/php-fpm.d/docker.conf /usr/local/etc/php-fpm.d/zz-docker.conf
 
 # patch mysql conf to use smaller transaction logs to save disk space
 cat <<EOF > /etc/mysql/conf.d/sandstorm.cnf
