@@ -12,19 +12,15 @@ on:
 
 jobs:
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # Checks-out the repository under $GITHUB_WORKSPACE
       - uses: actions/checkout@v2
-
-      # - name: Build Docker Image
-      #   run: sudo ./build
 
       - name: Create Sandstorm Package
         run: |
           wget https://raw.githubusercontent.com/sandstorm-io/sandstorm/master/install.sh
           chmod +x install.sh && sudo ./install.sh -d
-          sudo spk pack
+          sudo ./build
+          sudo spk pack monica.spk
