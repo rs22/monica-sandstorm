@@ -8,15 +8,13 @@ RUN set -ex; \
     apt-get install -y --no-install-recommends gnupg; \
     rm -rf /var/lib/apt/lists/* ; \
     \
-    mkdir -p ~/.gnupg ; \
-    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf ; \
-    \
     for ext in tar.bz2 tar.bz2.asc; do \
         curl -fsSL -o monica-${MONICA_VERSION}.$ext "https://github.com/monicahq/monica/releases/download/v${MONICA_VERSION}/monica-v${MONICA_VERSION}.$ext"; \
     done; \
     \
     GPGKEY='BDAB0D0D36A00466A2964E85DE15667131EA6018'; \
     export GNUPGHOME="$(mktemp -d)"; \
+    echo "disable-ipv6" >> $GNUPGHOME/dirmngr.conf ; \
     gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$GPGKEY"; \
     gpg --batch --verify monica-${MONICA_VERSION}.tar.bz2.asc monica-${MONICA_VERSION}.tar.bz2; \
     \

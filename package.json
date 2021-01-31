@@ -1,0 +1,22 @@
+{
+  "name": "monica-sandstorm",
+  "version": "1.0.0",
+  "description": "This repository contains files to turn the [Monica](https://github.com/monicahq/monica) Personal Relationship Manager into a Sandstorm app.",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rs22/monica-sandstorm.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rs22/monica-sandstorm/issues"
+  },
+  "homepage": "https://github.com/rs22/monica-sandstorm#readme",
+  "devDependencies": {
+    "cypress-iframe": "^1.0.1"
+  }
+}
