@@ -9,7 +9,7 @@ RUN set -ex; \
     rm -rf /var/lib/apt/lists/* ; \
     \
     mkdir -p ~/.gnupg \
-    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf \
+    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf ; \
     \
     for ext in tar.bz2 tar.bz2.asc; do \
         curl -fsSL -o monica-${MONICA_VERSION}.$ext "https://github.com/monicahq/monica/releases/download/v${MONICA_VERSION}/monica-v${MONICA_VERSION}.$ext"; \
