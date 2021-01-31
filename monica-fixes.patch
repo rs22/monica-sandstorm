@@ -1,0 +1,194 @@
+From 2603e61a6ecc9dac14a499d2ebd4b61d0419327c Mon Sep 17 00:00:00 2001
+From: Robert Schmid <r.schmid@outlook.com>
+Date: Mon, 11 Jan 2021 19:33:15 +0100
+Subject: [PATCH] Sandstorm adjustments
+
+---
+ .../Controllers/Auth/RegisterController.php   | 48 ++++++++++++++++++-
+ app/Providers/AuthServiceProvider.php         | 11 +++++
+ config/auth.php                               |  2 +-
+ resources/views/auth/register.blade.php       |  8 +++-
+ 4 files changed, 65 insertions(+), 4 deletions(-)
+
+diff --git a/app/Http/Controllers/Auth/RegisterController.php b/app/Http/Controllers/Auth/RegisterController.php
+index f4b12a25..1cc33783 100644
+--- a/app/Http/Controllers/Auth/RegisterController.php
++++ b/app/Http/Controllers/Auth/RegisterController.php
+@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
+ use App\Http\Controllers\Controller;
+ use Illuminate\Support\Facades\Validator;
+ use Illuminate\Foundation\Auth\RegistersUsers;
++use Illuminate\Auth\Events\Registered;
+
+ class RegisterController extends Controller
+ {
+@@ -58,6 +59,18 @@ class RegisterController extends Controller
+             abort(403, trans('auth.signup_disabled'));
+         }
+
++        if ($_ENV["SANDSTORM"] == '1') {
++            $user_name = urldecode($request->header('X-Sandstorm-Username', 'Anonymous User')) . ' ';
++            list($first_name, $last_name) = explode(' ', $user_name, 2);
++
++            return view('auth.register')
++                ->withFirst($first)
++                ->withSandstorm(true)
++                ->withSandstormFirstName($first_name)
++                ->withSandstormLastName(trim($last_name))
++                ->withLocales(LocaleHelper::getLocaleList()->sortByCollator('lang'));
++        }
++
+         return view('auth.register')
+             ->withFirst($first)
+             ->withLocales(LocaleHelper::getLocaleList()->sortByCollator('lang'));
+@@ -71,6 +84,14 @@ class RegisterController extends Controller
+      */
+     protected function validator(array $data)
+     {
++        if ($_ENV["SANDSTORM"] == '1') {
++            return Validator::make($data, [
++                'last_name' => 'required|max:255',
++                'first_name' => 'required|max:255',
++                'policy' => 'required',
++            ]);
++        }
++
+         return Validator::make($data, [
+             'last_name' => 'required|max:255',
+             'first_name' => 'required|max:255',
+@@ -80,19 +101,44 @@ class RegisterController extends Controller
+         ]);
+     }
+
++    /**
++     * Handle a registration request for the application.
++     *
++     * @param  \Illuminate\Http\Request  $request
++     * @return \Illuminate\Http\Response
++     */
++    public function register(Request $request)
++    {
++        $this->validator($request->all())->validate();
++
++        event(new Registered($user = $this->create($request, $request->all())));
++
++        return $this->registered($request, $user)
++                        ?: redirect($this->redirectPath());
++    }
++
+     /**
+      * Create a new user instance after a valid registration.
+      *
+      * @param  array $data
+      * @return User|null
+      */
+-    protected function create(array $data): ?User
++    protected function create(Request $request, array $data): ?User
+     {
+         $first = ! InstanceHelper::hasAtLeastOneAccount();
+         if (config('monica.disable_signup') == 'true' && ! $first) {
+             abort(403, trans('auth.signup_disabled'));
+         }
+
++        if ($_ENV["SANDSTORM"] == '1') {
++            $user = $request->header('X-Sandstorm-User-Id');
++            if (is_null($user)) {
++                abort(403, trans('auth.signup_disabled'));
++            }
++            $data['email'] = $user . '@sandstorm.io';
++            $data['password'] = 'sandstorm';
++        }
++
+         try {
+             $account = Account::createDefault(
+                 $data['first_name'],
+diff --git a/app/Providers/AuthServiceProvider.php b/app/Providers/AuthServiceProvider.php
+index 264f10bf..a139c72b 100644
+--- a/app/Providers/AuthServiceProvider.php
++++ b/app/Providers/AuthServiceProvider.php
+@@ -2,7 +2,9 @@
+
+ namespace App\Providers;
+
++use App\Models\User\User;
+ use Illuminate\Http\Request;
++use Illuminate\Support\Facades\Auth;
+ use Laravel\Passport\Passport;
+ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+
+@@ -26,6 +28,15 @@ class AuthServiceProvider extends ServiceProvider
+     {
+         $this->registerPolicies();
+
++        Auth::viaRequest('sandstorm', function (Request $request) {
++            $user = $request->header('X-Sandstorm-User-Id');
++            if (is_null($user)) {
++                return null;
++            }
++
++            return User::where('email', $user . '@sandstorm.io')->first();
++        });
++
+         Passport::routes();
+         Passport::ignoreCsrfToken(in_array($request->method(), ['HEAD', 'GET', 'OPTIONS']));
+     }
+diff --git a/config/auth.php b/config/auth.php
+index 211cb544..79ca697f 100644
+--- a/config/auth.php
++++ b/config/auth.php
+@@ -37,7 +37,7 @@ return [
+
+     'guards' => [
+         'web' => [
+-            'driver' => 'session',
++            'driver' => 'sandstorm',
+             'provider' => 'users',
+         ],
+
+diff --git a/resources/views/auth/register.blade.php b/resources/views/auth/register.blade.php
+index 2f8a73c3..54ea5177 100644
+--- a/resources/views/auth/register.blade.php
++++ b/resources/views/auth/register.blade.php
+@@ -56,26 +56,29 @@
+             <form action="register" method="post">
+               @csrf
+
++              @if(! $sandstorm)
+               <div class="form-group">
+                 <label for="email">{{ trans('auth.register_email') }}</label>
+                 <input type="email" class="form-control" id="email" name="email" placeholder="{{ trans('auth.register_email_example') }}" value="{{ old('email') }}" required autocomplete="email" autofocus>
+               </div>
++              @endif
+
+               <div class="row">
+                 <div class="col-12 col-sm-6">
+                   <div class="form-group">
+                     <label for="first_name">{{ trans('auth.register_firstname') }}</label>
+-                    <input type="text" class="form-control" id="first_name" name="first_name" placeholder="{{ trans('auth.register_firstname_example') }}" value="{{ old('first_name') }}" required autocomplete="given-name">
++                    <input type="text" class="form-control" id="first_name" name="first_name" placeholder="{{ trans('auth.register_firstname_example') }}" value="{{ old('first_name', $sandstormFirstName) }}" required autocomplete="given-name">
+                   </div>
+                 </div>
+                 <div class="col-12 col-sm-6">
+                   <div class="form-group">
+                     <label for="last_name">{{ trans('auth.register_lastname') }}</label>
+-                    <input type="text" class="form-control" id="last_name" name="last_name" placeholder="{{ trans('auth.register_lastname_example') }}" value="{{ old('last_name') }}" required autocomplete="family-name">
++                    <input type="text" class="form-control" id="last_name" name="last_name" placeholder="{{ trans('auth.register_lastname_example') }}" value="{{ old('last_name', $sandstormLastName) }}" required autocomplete="family-name">
+                   </div>
+                 </div>
+               </div>
+
++              @if(! $sandstorm)
+               <div class="form-group">
+                 <label for="password">{{ trans('auth.register_password') }}</label>
+                 <input type="password" class="form-control" id="password" name="password" placeholder="{{ trans('auth.register_password_example') }}" required autocomplete="password">
+@@ -85,6 +88,7 @@
+                 <label for="password_confirmation">{{ trans('auth.register_password_confirmation') }}</label>
+                 <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required autocomplete="password">
+               </div>
++              @endif
+
+               <!-- Policy acceptance check -->
+               <div class="form-check">
+--
+2.25.1
+

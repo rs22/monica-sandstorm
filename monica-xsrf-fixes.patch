@@ -1,0 +1,52 @@
+From d42884289f572bc9259220660e117008adf0cf3d Mon Sep 17 00:00:00 2001
+From: Robert Schmid <r.schmid@outlook.com>
+Date: Fri, 29 Jan 2021 17:28:57 +0100
+Subject: [PATCH] Change xsrf token header name on server side
+
+---
+ app/Http/Middleware/VerifyCsrfToken.php | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/app/Http/Middleware/VerifyCsrfToken.php b/app/Http/Middleware/VerifyCsrfToken.php
+index 21cc1b3f..6747fbd8 100644
+--- a/app/Http/Middleware/VerifyCsrfToken.php
++++ b/app/Http/Middleware/VerifyCsrfToken.php
+@@ -2,6 +2,7 @@
+ 
+ namespace App\Http\Middleware;
+ 
++use Illuminate\Cookie\CookieValuePrefix;
+ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as Middleware;
+ 
+ class VerifyCsrfToken extends Middleware
+@@ -13,6 +14,27 @@ class VerifyCsrfToken extends Middleware
+      */
+     protected $addHttpCookie = true;
+ 
++     /**
++     * Get the CSRF token from the request.
++     *
++     * @param  \Illuminate\Http\Request  $request
++     * @return string
++     */
++    protected function getTokenFromRequest($request)
++    {
++        $token = $request->input('_token') ?: $request->header('X-CSRF-TOKEN');
++
++        if (! $token && $header = $request->header('x-sandstorm-app-x-xsrf-token')) {
++            try {
++                $token = CookieValuePrefix::remove($this->encrypter->decrypt($header, static::serialized()));
++            } catch (DecryptException $e) {
++                $token = '';
++            }
++        }
++
++        return $token;
++    }
++
+     /**
+      * The URIs that should be excluded from CSRF verification.
+      *
+-- 
+2.25.1
+

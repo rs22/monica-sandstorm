@@ -1,0 +1,24 @@
+From c5d8430f7f4e7c8f87a80fcdf5f251913785635b Mon Sep 17 00:00:00 2001
+From: Robert Schmid <r.schmid@outlook.com>
+Date: Fri, 29 Jan 2021 15:02:58 +0100
+Subject: [PATCH] Set sandstorm-specific x-xsrf-token header name
+
+---
+ resources/js/bootstrap.js | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/resources/js/bootstrap.js b/resources/js/bootstrap.js
+index 9bac46f8..4cab170f 100644
+--- a/resources/js/bootstrap.js
++++ b/resources/js/bootstrap.js
+@@ -28,6 +28,7 @@ try {
+ window.axios = require('axios');
+ 
+ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
++window.axios.defaults.xsrfHeaderName = 'x-sandstorm-app-x-xsrf-token';
+ 
+ /**
+  * Echo exposes an expressive API for subscribing to channels and listening
+-- 
+2.25.1
+

@@ -12,6 +12,9 @@ export DB_PASSWORD=
 
 export PHP_OPCACHE_MEMORY_CONSUMPTION=192
 
+# export APP_ENV=local
+# export APP_DEBUG=TRUE
+
 # Prepare monica files and folders
 mkdir -p /var/www/html/storage
 if [ ! -f /var/www/html/.env ]; then cp /opt/www/html/.env.example /var/www/html/.env; fi

@@ -1,4 +1,42 @@
-FROM monica:2.19.1-fpm
+ARG MONICA_VERSION=2.19.1
+
+FROM node:lts AS js-builder
+ARG MONICA_VERSION
+
+RUN set -ex; \
+    fetchDeps=" \
+        gnupg \
+    "; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends $fetchDeps; \
+    \
+    for ext in tar.bz2 tar.bz2.asc; do \
+        curl -fsSL -o monica-${MONICA_VERSION}.$ext "https://github.com/monicahq/monica/releases/download/v${MONICA_VERSION}/monica-v${MONICA_VERSION}.$ext"; \
+    done; \
+    \
+    GPGKEY='BDAB0D0D36A00466A2964E85DE15667131EA6018'; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$GPGKEY"; \
+    gpg --batch --verify monica-${MONICA_VERSION}.tar.bz2.asc monica-${MONICA_VERSION}.tar.bz2; \
+    \
+    mkdir /app; \
+    tar -xf monica-${MONICA_VERSION}.tar.bz2 -C /app --strip-components=1; \
+    \
+    gpgconf --kill all; \
+    rm -r "$GNUPGHOME" monica-${MONICA_VERSION}.tar.bz2 monica-${MONICA_VERSION}.tar.bz2.asc; \
+    \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $fetchDeps; \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+RUN yarn install --ignore-engines --frozen-lockfile --ignore-scripts
+
+COPY monica-js-fixes.patch .
+RUN git apply --unsafe-paths monica-js-fixes.patch
+
+RUN yarn run production
+
+FROM monica:${MONICA_VERSION}-fpm
 
 RUN set -ex; \
     \
@@ -25,6 +63,13 @@ RUN sed --in-place='' \
         --expression='s/^    waitfordb$/    # waitfordb/' \
         --expression='s/^    chown -R www-data:www-data/    # chown -R www-data:www-data/' \
         /usr/local/bin/entrypoint.sh
+
+COPY monica-fixes.patch monica-xsrf-fixes.patch /opt/app/
+RUN cd /opt/www/html \
+ && git apply --unsafe-paths /opt/app/monica-fixes.patch \
+ && git apply --unsafe-paths /opt/app/monica-xsrf-fixes.patch
+
+COPY --from=js-builder /app/public/js/vendor.js /opt/www/html/public/js/vendor.js
 
 # COPY opt/app/launcher.sh /opt/app/
 # COPY opt/app/service-config/nginx.conf /opt/app/service-config/nginx.conf
