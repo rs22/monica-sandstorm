@@ -27,3 +27,9 @@ jobs:
           sudo ./build
           echo $SPK_KEY | base64 -d > ~/.sandstorm-keyring
           sudo spk pack monica.spk
+          
+      - name: Run smoke test
+        uses: cypress-io/github-action@v2.7.0
+        with:
+          start: sudo spk dev
+          browser: chrome        
