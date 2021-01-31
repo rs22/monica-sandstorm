@@ -23,4 +23,5 @@ jobs:
           wget https://raw.githubusercontent.com/sandstorm-io/sandstorm/master/install.sh
           chmod +x install.sh && sudo ./install.sh -d
           sudo ./build
+          echo $SPK_KEY | base64 -d > ~/.sandstorm-keyring
           sudo spk pack monica.spk
