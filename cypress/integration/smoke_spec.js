@@ -24,12 +24,12 @@ describe('Smoke Test', () => {
     it('creates a grain, performs setup and creates a contact', () => {
         cy.visit('http://local.sandstorm.io:6080')
 
-        // Log in
+        // Log in and set up account
         cy.contains('with a Dev account').click()
         cy.contains('Alice (admin)').click()
+        cy.contains('Continue').click()
 
         // Create grain
-        cy.contains('Apps').click()
         cy.contains('Monica').click()
         cy.contains('(Dev) Create new instance').click()
 
