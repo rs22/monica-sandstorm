@@ -7,5 +7,3 @@ mnt=$(buildah mount $ctr)
 sed --in-place='' \
     --expression='s,( sourcePath = "/.*",( sourcePath = "'"$mnt"'",' \
     sandstorm-pkgdef.capnp
-
-# ( sourcePath = "/var/lib/containers/storage/overlay/2fc65161b49bcbe3032cf501a25a08157ea5e1c0ec989749596d0121311074ff/merged",    # Then search the system root directory.
