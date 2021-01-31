@@ -4,11 +4,12 @@ FROM node:lts AS js-builder
 ARG MONICA_VERSION
 
 RUN set -ex; \
-    fetchDeps=" \
-        gnupg \
-    "; \
     apt-get update; \
-    apt-get install -y --no-install-recommends $fetchDeps; \
+    apt-get install -y --no-install-recommends gpupg; \
+    rm -rf /var/lib/apt/lists/* ; \
+    \
+    mkdir ~/.gnupg \
+    echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf \
     \
     for ext in tar.bz2 tar.bz2.asc; do \
         curl -fsSL -o monica-${MONICA_VERSION}.$ext "https://github.com/monicahq/monica/releases/download/v${MONICA_VERSION}/monica-v${MONICA_VERSION}.$ext"; \
@@ -23,10 +24,7 @@ RUN set -ex; \
     tar -xf monica-${MONICA_VERSION}.tar.bz2 -C /app --strip-components=1; \
     \
     gpgconf --kill all; \
-    rm -r "$GNUPGHOME" monica-${MONICA_VERSION}.tar.bz2 monica-${MONICA_VERSION}.tar.bz2.asc; \
-    \
-    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $fetchDeps; \
-    rm -rf /var/lib/apt/lists/*
+    rm -r "$GNUPGHOME" monica-${MONICA_VERSION}.tar.bz2 monica-${MONICA_VERSION}.tar.bz2.asc
 
 WORKDIR /app
 RUN yarn install --ignore-engines --frozen-lockfile --ignore-scripts
