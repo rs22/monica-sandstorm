@@ -27,9 +27,31 @@ jobs:
           sudo ./build
           echo $SPK_KEY | base64 -d > ~/.sandstorm-keyring
           sudo spk pack monica.spk
-          
+
       - name: Run smoke test
         uses: cypress-io/github-action@v2.7.0
         with:
           start: sudo spk dev
-          browser: chrome        
+          browser: chrome
+
+    name: Artifacts
+    steps:
+      - uses: actions/checkout@v1
+      - uses: cypress-io/github-action@v2
+      # after the test run completes
+      # store videos and any screenshots
+      # NOTE: screenshots will be generated only if E2E test failed
+      # thus we store screenshots only on failures
+      # Alternative: create and commit an empty cypress/screenshots folder
+      # to always have something to upload
+      - uses: actions/upload-artifact@v1
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+      # Test run video was always captured, so this action uses "always()" condition
+      - uses: actions/upload-artifact@v1
+        if: always()
+        with:
+          name: cypress-videos
+          path: cypress/videos
