@@ -8,7 +8,7 @@ RUN set -ex; \
     apt-get install -y --no-install-recommends gnupg; \
     rm -rf /var/lib/apt/lists/* ; \
     \
-    mkdir -p ~/.gnupg \
+    mkdir -p ~/.gnupg ; \
     echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf ; \
     \
     for ext in tar.bz2 tar.bz2.asc; do \
