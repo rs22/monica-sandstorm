@@ -6,7 +6,7 @@ describe('Smoke Test', () => {
         cy.contains('with a Dev account').click()
         cy.contains('Alice (admin)').click()
         cy.contains('Continue').click()
-        cy.contains('Got It').click()
+        cy.contains('Apps').click()
 
         // Create grain
         cy.contains('Monica').click()
