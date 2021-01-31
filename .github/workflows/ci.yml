@@ -19,6 +19,8 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Create Sandstorm Package
+        env:
+          SPK_KEY: ${{ secrets.SPK_KEY }}
         run: |
           wget https://raw.githubusercontent.com/sandstorm-io/sandstorm/master/install.sh
           chmod +x install.sh && sudo ./install.sh -d
