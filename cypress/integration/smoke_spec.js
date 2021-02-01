@@ -6,11 +6,12 @@ describe('Smoke Test', () => {
         cy.contains('with a Dev account').click()
         cy.contains('Alice (admin)').click()
         cy.contains('Continue').click()
-        cy.contains('Apps').click()
+        cy.contains('Got it').click()
 
         // Create grain
         cy.contains('Monica').click()
         cy.contains('(Dev) Create new instance').click()
+        cy.contains('Got it').click()  // dismiss notice of first grain created
 
         cy.frameLoaded('iframe.grain-frame', { timeout: 150 * 1000 })
 
