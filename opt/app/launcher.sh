@@ -5,8 +5,6 @@ cd /opt/www/html
 # Monica environment
 export DB_HOST=127.0.0.1
 export DB_DATABASE=monica
-# export DB_USERNAME=homestead
-# export DB_PASSWORD=secret
 export DB_USERNAME=root
 export DB_PASSWORD=
 

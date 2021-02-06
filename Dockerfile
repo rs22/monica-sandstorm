@@ -29,8 +29,8 @@ RUN set -ex; \
 WORKDIR /app
 RUN yarn install --ignore-engines --frozen-lockfile --ignore-scripts
 
-COPY monica-js-fixes.patch .
-RUN git apply --unsafe-paths monica-js-fixes.patch
+COPY monica-patches/js/*.patch ./patches/
+RUN git apply --unsafe-paths ./patches/*.patch
 
 RUN yarn run production
 
@@ -62,10 +62,10 @@ RUN sed --in-place='' \
         --expression='s/^    chown -R www-data:www-data/    # chown -R www-data:www-data/' \
         /usr/local/bin/entrypoint.sh
 
-COPY monica-fixes.patch monica-xsrf-fixes.patch /opt/app/
+
+COPY monica-patches/php/*.patch /opt/app/patches/
 RUN cd /opt/www/html \
- && git apply --unsafe-paths /opt/app/monica-fixes.patch \
- && git apply --unsafe-paths /opt/app/monica-xsrf-fixes.patch
+ && git apply --unsafe-paths /opt/app/patches/*.patch
 
 COPY --from=js-builder /app/public/js/vendor.js /opt/www/html/public/js/vendor.js
 
