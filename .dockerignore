@@ -1,1 +1,6 @@
 sandstorm-files.list
+node_modules
+.git
+cypress
+*.spk
+

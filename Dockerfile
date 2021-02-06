@@ -1,28 +1,30 @@
-ARG MONICA_VERSION=2.19.1
+FROM monica:2.19.1-fpm AS monica-base
+RUN echo $MONICA_VERSION > /monica_version
 
 FROM node:lts AS js-builder
-ARG MONICA_VERSION
+COPY --from=monica-base /monica_version /monica_version
 
 RUN set -ex; \
+    export MONICA_VERSION="$(cat /monica_version)"; \
     apt-get update; \
     apt-get install -y --no-install-recommends gnupg; \
     rm -rf /var/lib/apt/lists/* ; \
     \
     for ext in tar.bz2 tar.bz2.asc; do \
-        curl -fsSL -o monica-${MONICA_VERSION}.$ext "https://github.com/monicahq/monica/releases/download/v${MONICA_VERSION}/monica-v${MONICA_VERSION}.$ext"; \
+        curl -fsSL -o monica-$MONICA_VERSION.$ext "https://github.com/monicahq/monica/releases/download/$MONICA_VERSION/monica-$MONICA_VERSION.$ext"; \
     done; \
     \
     GPGKEY='BDAB0D0D36A00466A2964E85DE15667131EA6018'; \
     export GNUPGHOME="$(mktemp -d)"; \
     echo "disable-ipv6" >> $GNUPGHOME/dirmngr.conf ; \
     gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$GPGKEY"; \
-    gpg --batch --verify monica-${MONICA_VERSION}.tar.bz2.asc monica-${MONICA_VERSION}.tar.bz2; \
+    gpg --batch --verify monica-$MONICA_VERSION.tar.bz2.asc monica-$MONICA_VERSION.tar.bz2; \
     \
     mkdir /app; \
-    tar -xf monica-${MONICA_VERSION}.tar.bz2 -C /app --strip-components=1; \
+    tar -xf monica-$MONICA_VERSION.tar.bz2 -C /app --strip-components=1; \
     \
     gpgconf --kill all; \
-    rm -r "$GNUPGHOME" monica-${MONICA_VERSION}.tar.bz2 monica-${MONICA_VERSION}.tar.bz2.asc
+    rm -r "$GNUPGHOME" monica-$MONICA_VERSION.tar.bz2 monica-$MONICA_VERSION.tar.bz2.asc
 
 WORKDIR /app
 RUN yarn install --ignore-engines --frozen-lockfile --ignore-scripts
@@ -32,7 +34,7 @@ RUN git apply --unsafe-paths monica-js-fixes.patch
 
 RUN yarn run production
 
-FROM monica:${MONICA_VERSION}-fpm
+FROM monica-base
 
 RUN set -ex; \
     \
