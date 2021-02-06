@@ -4,6 +4,8 @@ name: CI
 on:
   push:
     branches: [ master ]
+    tags:
+    - 'v*'
   pull_request:
     branches: [ master ]
 
@@ -33,7 +35,7 @@ jobs:
         with:
           start: sudo spk dev
           browser: chrome
-      
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -45,9 +47,9 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
-                    
+
       - name: Upload Release SPK
-        id: upload-release-asset 
+        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         if: startsWith(github.ref, 'refs/tags/v')
         env:
