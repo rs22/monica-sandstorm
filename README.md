@@ -22,11 +22,11 @@ If you want to make changes to monica, you can clone it into the `opt/www/html` 
 
 Note that if you change parts of the client-side JavaScript, these have to be manually transferred into the `public/js/vendor.js` (i.e. using `yarn production`) in order to be picked up.
 
-When finished, commit your changes to monica create a new patch file, and register it in the [Dockerfile](Dockerfile):
+When finished, commit your changes to monica and create a new patch file:
 
 ```bash
 git commit
-git format-patch HEAD~1 --stdout > ../../../monica-patches/my-patch.patch
+git format-patch HEAD~1 --stdout > ../../../monica-patches/php/my-patch.patch
 ```
 
 ## Overview of build files
