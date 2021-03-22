@@ -1,4 +1,4 @@
-FROM monica:2.19.1-fpm AS monica-base
+FROM monica:2.20.0-fpm AS monica-base
 RUN echo $MONICA_VERSION > /monica_version
 
 FROM node:lts AS js-builder
