@@ -1,8 +1,13 @@
-FROM monica:2.19.1-fpm AS monica-base
+FROM monica:2.20.0-fpm AS monica-base
 RUN echo $MONICA_VERSION > /monica_version
 
-FROM node:lts AS js-builder
+FROM php:7.4 AS js-builder
 COPY --from=monica-base /monica_version /monica_version
+
+RUN curl -sL https://deb.nodesource.com/setup_14.x  | bash - \
+ && apt-get install --no-install-recommends -y nodejs git \
+ && rm -rf /var/lib/apt/lists/* \
+ && npm i -g yarn
 
 RUN set -ex; \
     export MONICA_VERSION="$(cat /monica_version)"; \
