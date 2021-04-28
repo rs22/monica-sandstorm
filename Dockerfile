@@ -1,7 +1,7 @@
 FROM monica:2.20.0-fpm AS monica-base
 RUN echo $MONICA_VERSION > /monica_version
 
-FROM php:7.4 AS js-builder
+FROM php:8.0.3 AS js-builder
 COPY --from=monica-base /monica_version /monica_version
 
 RUN curl -sL https://deb.nodesource.com/setup_14.x  | bash - \
