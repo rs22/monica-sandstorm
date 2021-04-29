@@ -7,3 +7,7 @@ mnt=$(buildah mount $ctr)
 sed --in-place='' \
     --expression='s,( sourcePath = "/.*",( sourcePath = "'"$mnt"'",' \
     sandstorm-pkgdef.capnp
+
+sed --in-place='' \
+    --expression="s/MONICA_VERSION/$(cat $mnt/monica_version)/" \
+    sandstorm-pkgdef.capnp
