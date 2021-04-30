@@ -60,6 +60,12 @@ jobs:
           asset_name: monica.spk
           asset_content_type: application/zip
 
+      - name: Submit to Sandstorm App Market
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          sudo spk verify monica.spk
+          sudo spk publish monica.spk
+
       # after the test run completes
       # store videos and any screenshots
       # NOTE: screenshots will be generated only if E2E test failed
