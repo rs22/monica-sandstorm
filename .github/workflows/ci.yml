@@ -20,14 +20,27 @@ jobs:
       # Checks-out the repository under $GITHUB_WORKSPACE
       - uses: actions/checkout@v2
 
-      - name: Create Sandstorm Package
-        env:
-          SPK_KEY: ${{ secrets.SPK_KEY }}
+      - name: Install Sandstorm Development Instance
         run: |
           wget https://raw.githubusercontent.com/sandstorm-io/sandstorm/master/install.sh
           chmod +x install.sh && sudo ./install.sh -d
-          sudo ./build
+
+      - name: Restore Sandstorm Keyring
+        env:
+          SPK_KEY: ${{ secrets.SPK_KEY }}
+        run: |
           echo $SPK_KEY | sudo sh -c "base64 -d > ~/.sandstorm-keyring"
+
+      - name: Create Temporary Package Key
+        if: startsWith(github.ref, 'refs/tags/v') == false
+        run: |
+          sed --in-place='' \
+              --expression="s/xrm87uacxhq8t07hy63kxta5k5a9pf1ca3am2wafrvxp9c2c5hhh/$(sudo spk keygen -q)/" \
+              sandstorm-pkgdef.capnp
+
+      - name: Create Sandstorm Package
+        run: |
+          sudo ./build
           sudo spk pack monica.spk
 
       - name: Run smoke test
