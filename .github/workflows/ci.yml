@@ -21,6 +21,18 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Create Sandstorm Package
+        if: startsWith(github.ref, 'refs/tags/v') == false
+        run: |
+          wget https://raw.githubusercontent.com/sandstorm-io/sandstorm/master/install.sh
+          chmod +x install.sh && sudo ./install.sh -d
+          sed --in-place='' \
+              --expression="s/xrm87uacxhq8t07hy63kxta5k5a9pf1ca3am2wafrvxp9c2c5hhh/$(sudo spk keygen -q)/" \
+              sandstorm-pkgdef.capnp
+          sudo ./build
+          sudo spk pack monica.spk
+
+      - name: Create Sandstorm Release Package
+        if: startsWith(github.ref, 'refs/tags/v')
         env:
           SPK_KEY: ${{ secrets.SPK_KEY }}
         run: |
