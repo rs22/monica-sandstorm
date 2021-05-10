@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/rs22/monica-sandstorm#readme",
   "devDependencies": {
-    "cypress": "^6.7.0",
+    "cypress": "^6.9.1",
     "cypress-iframe": "^1.0.1"
   }
 }
