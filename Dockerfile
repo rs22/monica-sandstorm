@@ -1,4 +1,4 @@
-FROM monica:3.0.0-fpm AS monica-base
+FROM monica:3.0.1-fpm AS monica-base
 RUN echo $MONICA_VERSION > /monica_version
 
 FROM php:7.4 AS js-builder
