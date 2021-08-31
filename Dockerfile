@@ -22,8 +22,8 @@ RUN set -ex; \
     GPGKEY='BDAB0D0D36A00466A2964E85DE15667131EA6018'; \
     export GNUPGHOME="$(mktemp -d)"; \
     echo "disable-ipv6" >> $GNUPGHOME/dirmngr.conf ; \
-    gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$GPGKEY"; \
-    gpg --batch --verify monica-$MONICA_VERSION.tar.bz2.asc monica-$MONICA_VERSION.tar.bz2; \
+    gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$GPGKEY"; \
+    gpg --batch --verify monica-${MONICA_VERSION}.tar.bz2.asc monica-${MONICA_VERSION}.tar.bz2; \
     \
     mkdir /app; \
     tar -xf monica-$MONICA_VERSION.tar.bz2 -C /app --strip-components=1; \
